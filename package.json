@@ -1,0 +1,22 @@
+{
+  "name": "xoauth2",
+  "version": "0.1.0",
+  "description": "XOAuth2 token generation for accessing GMail SMTP and IMAP",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/andris9/xoauth2.git"
+  },
+  "keywords": [
+    "XOAUTH",
+    "XOAUTH2",
+    "GMail",
+    "SMTP",
+    "IMAP"
+  ],
+  "author": "Andris Reinman",
+  "license": "MIT"
+}
