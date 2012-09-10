@@ -1,4 +1,6 @@
-var requestlib = require("request");
+var requestlib = require("request"),
+    Stream = require("stream").Stream,
+    utillib = require("util");
 
 /**
  * Wrapper for new XOAuth2Generator.
@@ -15,7 +17,7 @@ var requestlib = require("request");
  */
 module.exports.createXOAuth2Generator = function(options){
     return new XOAuth2Generator(options);
-}
+};
 
 /**
  * XOAUTH2 access_token generator for Gmail. 
@@ -26,20 +28,22 @@ module.exports.createXOAuth2Generator = function(options){
  * @constructor
  * @param {Object} options Client information for token generation
  * @param {String} options.user User e-mail address
+ * @param {String} options.token Existing OAuth2 token
  * @param {String} [options.accessUrl="https://accounts.google.com/o/oauth2/token"] Endpoint for token genration
  * @param {String} options.clientId Client ID value
  * @param {String} options.clientSecret Client secret value
  * @param {String} options.refreshToken Refresh token for an user
  */
 function XOAuth2Generator(options){
+    Stream.call(this);
     this.options = options || {};
 
     this.options.accessUrl = this.options.accessUrl || "https://accounts.google.com/o/oauth2/token";
 
-    this.status = false;
-    this.token = false;
-    this.timeout = 0;  
+    this.token = this.options.accessToken && this.buildXOAuth2Token(this.options.accessToken) || false;
+    this.timeout = this.options.timeout || 0;
 }
+utillib.inherits(XOAuth2Generator, Stream);
 
 /**
  * Returns or generates (if previous has expired) a XOAuth2 token
@@ -47,11 +51,29 @@ function XOAuth2Generator(options){
  * @param {Function} callback Callback function with error object and token string
  */
 XOAuth2Generator.prototype.getToken = function(callback){
-    if(this.timeout > Date.now() && this.token){
+    console.log(this.token, (!this.timeout || this.timeout > Date.now()))
+    if(this.token && (!this.timeout || this.timeout > Date.now())){
         return callback(null, this.token);
     }
     this.generateToken(callback);
-}
+};
+
+/**
+ * Updates token values
+ *
+ * @param {String} accessToken New access token
+ * @param {Number} timeout Access token lifetime in seconds
+ */
+XOAuth2Generator.prototype.updateToken = function(accessToken, timeout){
+    this.token = this.buildXOAuth2Token(accessToken);
+    this.timeout = timeout && Date.now() + ((Number(timeout) || 0) - 1) * 1000 || 0;
+
+    this.emit("token", {
+        user: this.options.user,
+        accessToken: accessToken || "",
+        timeout: Math.floor(this.timeout/1000)
+    });
+};
 
 /**
  * Generates a new XOAuth2 token with the credentials provided at initialization
@@ -64,7 +86,7 @@ XOAuth2Generator.prototype.generateToken = function(callback){
         client_secret: this.options.clientSecret || "",
         refresh_token: this.options.refreshToken,
         grant_type: "refresh_token"
-    }
+    };
 
     requestlib({
             method: "POST",
@@ -87,19 +109,16 @@ XOAuth2Generator.prototype.generateToken = function(callback){
             }
 
             if(data.error){
-                this.status = "error";
                 return callback(data.error);
             }
 
             if(data.access_token){
-                this.status = "ok";
-                this.timeout = Date.now() + ((Number(data.expires_in) || 0) - 1) * 1000;
-                this.token = this.buildXOAuth2Token(data.access_token);
+                this.updateToken(data.access_token, data.expires_in);
                 return callback(null, this.token);
             }
 
         }).bind(this));
-}
+};
 
 /**
  * Converts an access_token and user id into a base64 encoded XOAuth2 token
@@ -114,4 +133,4 @@ XOAuth2Generator.prototype.buildXOAuth2Token = function(accessToken){
         "",
         ""];
     return new Buffer(authData.join("\x01"), "utf-8").toString("base64");
-}
+};
