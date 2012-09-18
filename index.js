@@ -51,7 +51,6 @@ utillib.inherits(XOAuth2Generator, Stream);
  * @param {Function} callback Callback function with error object and token string
  */
 XOAuth2Generator.prototype.getToken = function(callback){
-    console.log(this.token, (!this.timeout || this.timeout > Date.now()))
     if(this.token && (!this.timeout || this.timeout > Date.now())){
         return callback(null, this.token);
     }
