@@ -58,15 +58,24 @@ If a new token value has been set, `'token'` event is emitted.
     xoauth2gen = xoauth2.createXOAuth2Generator({
         user: "user@gmail.com",
         clientId: "{Client ID}",
-        clientId: "{Client Secret}",
+        clientSecret: "{Client Secret}",
         refreshToken: "{User Refresh Token}"
     });
 
+    // SMTP/IMAP
     xoauth2gen.getToken(function(err, token){
         if(err){
             return console.log(err);
         }
-        console.log("Base64 encoded XOAUTH2 auth string: " + token);
+        console.log("AUTH XOAUTH2 " + token);
+    });
+
+    // HTTP
+    xoauth2gen.getToken(function(err, token, accessToken){
+        if(err){
+            return console.log(err);
+        }
+        console.log("Authorization: Bearer " + accessToken);
     });
 
 ## License

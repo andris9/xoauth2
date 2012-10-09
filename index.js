@@ -41,6 +41,8 @@ function XOAuth2Generator(options){
     this.options.accessUrl = this.options.accessUrl || "https://accounts.google.com/o/oauth2/token";
 
     this.token = this.options.accessToken && this.buildXOAuth2Token(this.options.accessToken) || false;
+    this.accessToken = this.token && this.options.accessToken || false;
+
     this.timeout = this.options.timeout || 0;
 }
 utillib.inherits(XOAuth2Generator, Stream);
@@ -52,7 +54,7 @@ utillib.inherits(XOAuth2Generator, Stream);
  */
 XOAuth2Generator.prototype.getToken = function(callback){
     if(this.token && (!this.timeout || this.timeout > Date.now())){
-        return callback(null, this.token);
+        return callback(null, this.token, this.acessToken);
     }
     this.generateToken(callback);
 };
@@ -65,6 +67,7 @@ XOAuth2Generator.prototype.getToken = function(callback){
  */
 XOAuth2Generator.prototype.updateToken = function(accessToken, timeout){
     this.token = this.buildXOAuth2Token(accessToken);
+    this.accessToken = accessToken;
     this.timeout = timeout && Date.now() + ((Number(timeout) || 0) - 1) * 1000 || 0;
 
     this.emit("token", {
@@ -113,7 +116,7 @@ XOAuth2Generator.prototype.generateToken = function(callback){
 
             if(data.access_token){
                 this.updateToken(data.access_token, data.expires_in);
-                return callback(null, this.token);
+                return callback(null, this.token, this.accessToken);
             }
 
         }).bind(this));
