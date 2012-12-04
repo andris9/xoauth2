@@ -1,6 +1,7 @@
 var requestlib = require("request"),
     Stream = require("stream").Stream,
-    utillib = require("util");
+    utillib = require("util"),
+    querystring = require("querystring");
 
 /**
  * Wrapper for new XOAuth2Generator.
@@ -84,16 +85,21 @@ XOAuth2Generator.prototype.updateToken = function(accessToken, timeout){
  */
 XOAuth2Generator.prototype.generateToken = function(callback){
     var urlOptions = {
-        client_id: this.options.clientId || "",
-        client_secret: this.options.clientSecret || "",
-        refresh_token: this.options.refreshToken,
-        grant_type: "refresh_token"
-    };
+            client_id: this.options.clientId || "",
+            client_secret: this.options.clientSecret || "",
+            refresh_token: this.options.refreshToken,
+            grant_type: "refresh_token"
+        },
+        payload = querystring.stringify(urlOptions);
 
     requestlib({
             method: "POST",
             url: this.options.accessUrl, 
-            form: urlOptions
+            body: payload,
+            headers: {
+                "Content-Type"   : "application/x-www-form-urlencoded",
+                "Content-Length" : Buffer.byteLength(payload)
+            }
         }, (function(error, response, body){
             var data;
 
