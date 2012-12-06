@@ -15,22 +15,21 @@ Use `xoauth2.createXOAuth2Generator(options)` to initialize Token Generator
 
 Possible options values:
 
-  * **user** User e-mail address
-  * **accessUrl** Optional Endpoint for token genration (defaults to *https://accounts.google.com/o/oauth2/token*)
-  * **clientId** Client ID value
-  * **clientSecret** Client secret value
-  * **refreshToken** Refresh token for an user
-  * **accessToken** Optional initial access token. If not set, a new one will be generated
-  * **timeout** Optional timeout for the initial access token
+  * **user** _(Required)_ User e-mail address
+  * **accessUrl** _(Optional)_ Endpoint for token generation (defaults to *https://accounts.google.com/o/oauth2/token*)
+  * **clientId** _(Required)_ Client ID value
+  * **clientSecret** _(Required)_ Client secret value
+  * **refreshToken** _(Required)_ Refresh token for an user
+  * **accessToken** _(Optional)_ initial access token. If not set, a new one will be generated
+  * **timeout** _(Optional)_ timestamp for when the initial access token times out. In **milliseconds** after 1.1.1970.
 
-See https://developers.google.com/accounts/docs/OAuth2WebServer#offline for generating the required credentials
+See [https://developers.google.com/accounts/docs/OAuth2WebServer#offline]() for generating the required credentials
 
 ### Methods
 
 #### Request an access token
 
-Use `xoauth2obj.getToken(callback)` to get an access token. If a cached token is found and it should not be expired yet, the
-cached value will be used.
+Use `xoauth2obj.getToken(callback)` to get an access token. If a cached token is found and it should not be expired yet, the cached value will be used.
 
 #### Request for generating a new access token
 
@@ -47,7 +46,7 @@ If a new token value has been set, `'token'` event is emitted.
     xoauth2obj.on("token", function(token){
         console.log("User: ", token.user); // e-mail address
         console.log("New access token: ", token.accessToken);
-        console.log("New access token timeout: ", token.timeout); // timestamp in second
+        console.log("New access token timeout: ", token.timeout); // timestamp after 1.1.1970 in seconds
     });
 
 ### Example
