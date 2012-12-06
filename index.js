@@ -28,12 +28,13 @@ module.exports.createXOAuth2Generator = function(options){
  *
  * @constructor
  * @param {Object} options Client information for token generation
- * @param {String} options.user User e-mail address
- * @param {String} options.token Existing OAuth2 token
- * @param {String} [options.accessUrl="https://accounts.google.com/o/oauth2/token"] Endpoint for token genration
- * @param {String} options.clientId Client ID value
- * @param {String} options.clientSecret Client secret value
- * @param {String} options.refreshToken Refresh token for an user
+ * @param {String} options.user         (Required) User e-mail address
+ * @param {String} options.clientId     (Required) Client ID value
+ * @param {String} options.clientSecret (Required) Client secret value
+ * @param {String} options.refreshToken (Required) Refresh token for an user
+ * @param {String} options.accessUrl    (Optional) Endpoint for token generation, defaults to "https://accounts.google.com/o/oauth2/token"
+ * @param {String} options.accessToken  (Optional) An existing valid accessToken
+ * @param {int}    options.timeout      (Optional) A timestamp in milliseconds after 1.1.1970 when the given accessToken expires
  */
 function XOAuth2Generator(options){
     Stream.call(this);
@@ -65,6 +66,8 @@ XOAuth2Generator.prototype.getToken = function(callback){
  *
  * @param {String} accessToken New access token
  * @param {Number} timeout Access token lifetime in seconds
+ *
+ * Emits 'token': { user: User email-address, accessToken: the new accessToken, timeout: Timestamp in seconds after 1.1.1970 }
  */
 XOAuth2Generator.prototype.updateToken = function(accessToken, timeout){
     this.token = this.buildXOAuth2Token(accessToken);
