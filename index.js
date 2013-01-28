@@ -56,7 +56,7 @@ utillib.inherits(XOAuth2Generator, Stream);
  */
 XOAuth2Generator.prototype.getToken = function(callback){
     if(this.token && (!this.timeout || this.timeout > Date.now())){
-        return callback(null, this.token, this.acessToken);
+        return callback(null, this.token, this.accessToken);
     }
     this.generateToken(callback);
 };
