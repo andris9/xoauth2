@@ -18,8 +18,5 @@
     "IMAP"
   ],
   "author": "Andris Reinman",
-  "license": "MIT",
-  "dependencies":{
-    "request": "*"
-  }
+  "license": "MIT"
 }

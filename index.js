@@ -1,7 +1,9 @@
-var requestlib = require("request"),
-    Stream = require("stream").Stream,
+var Stream = require("stream").Stream,
     utillib = require("util"),
-    querystring = require("querystring");
+    querystring = require("querystring"),
+    http = require("http"),
+    https = require("https"),
+    urllib = require("url");
 
 /**
  * Wrapper for new XOAuth2Generator.
@@ -95,15 +97,7 @@ XOAuth2Generator.prototype.generateToken = function(callback){
         },
         payload = querystring.stringify(urlOptions);
 
-    requestlib({
-            method: "POST",
-            url: this.options.accessUrl, 
-            body: payload,
-            headers: {
-                "Content-Type"   : "application/x-www-form-urlencoded",
-                "Content-Length" : Buffer.byteLength(payload)
-            }
-        }, (function(error, response, body){
+        postRequest(this.options.accessUrl, payload, (function(error, response, body){
             var data;
 
             if(error){
@@ -128,6 +122,7 @@ XOAuth2Generator.prototype.generateToken = function(callback){
                 return callback(null, this.token, this.accessToken);
             }
 
+            return callback(new Error("No access token"));
         }).bind(this));
 };
 
@@ -145,3 +140,46 @@ XOAuth2Generator.prototype.buildXOAuth2Token = function(accessToken){
         ""];
     return new Buffer(authData.join("\x01"), "utf-8").toString("base64");
 };
+
+
+function postRequest(url, payload, callback){
+    var options = urllib.parse(url),
+        finished = false;
+
+    options.method = "POST";
+
+    var req = (options.protocol=="https:"?https:http).request(options, function(res) {
+        var data = [];
+
+        res.on('data', function (chunk) {
+            data.push(chunk);
+        });
+
+        res.on("end", function(){
+            if(finished){return;}
+            finished = true
+            return callback(null, res, Buffer.concat(data));
+        });
+
+        res.on("error", function(err) {
+            if(finished){return;}
+            finished = true
+            callback(err);
+        });
+    });
+
+    req.on("error", function(err) {
+        if(finished){return;}
+        finished = true
+        callback(err);
+    });
+
+    if(payload){
+        req.setHeader("Content-Type", "application/x-www-form-urlencoded");
+        req.setHeader("Content-Length", typeof payload == "string" ? Buffer.byteLength(payload) : payload.length);
+    }
+    
+    req.write(payload);
+    req.end();
+
+}
