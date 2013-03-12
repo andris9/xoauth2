@@ -47,7 +47,7 @@ function XOAuth2Generator(options){
     this.token = this.options.accessToken && this.buildXOAuth2Token(this.options.accessToken) || false;
     this.accessToken = this.token && this.options.accessToken || false;
 
-    this.timeout = this.options.timeout || 0;
+    this.timeout = this.options.timeout && Date.now() + ((Number(this.options.timeout) || 0) - 1) * 1000 || 0;
 }
 utillib.inherits(XOAuth2Generator, Stream);
 
