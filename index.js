@@ -23,7 +23,7 @@ module.exports.createXOAuth2Generator = function(options){
 };
 
 /**
- * XOAUTH2 access_token generator for Gmail. 
+ * XOAUTH2 access_token generator for Gmail.
  * Create client ID for web applications in Google API console to use it.
  * See Offline Access for receiving the needed refreshToken for an user
  * https://developers.google.com/accounts/docs/OAuth2WebServer#offline
@@ -108,13 +108,13 @@ XOAuth2Generator.prototype.generateToken = function(callback){
             }catch(E){
                 return callback(E);
             }
-            
+
             if(!data || typeof data != "object"){
                 return callback(new Error("Invalid authentication response"));
             }
 
             if(data.error){
-                return callback(data.error);
+                return callback(new Error(data.error));
             }
 
             if(data.access_token){
@@ -128,7 +128,7 @@ XOAuth2Generator.prototype.generateToken = function(callback){
 
 /**
  * Converts an access_token and user id into a base64 encoded XOAuth2 token
- * 
+ *
  * @param {String} accessToken Access token string
  * @return {String} Base64 encoded token for IMAP or SMTP login
  */
@@ -178,7 +178,7 @@ function postRequest(url, payload, callback){
         req.setHeader("Content-Type", "application/x-www-form-urlencoded");
         req.setHeader("Content-Length", typeof payload == "string" ? Buffer.byteLength(payload) : payload.length);
     }
-    
+
     req.write(payload);
     req.end();
 
