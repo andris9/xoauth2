@@ -143,35 +143,53 @@ XOAuth2Generator.prototype.buildXOAuth2Token = function(accessToken){
 
 
 function postRequest(url, payload, callback){
-    var options = urllib.parse(url),
-        finished = false;
+    var options    = urllib.parse(url),
+        // Keep track of all of the various event listeners, so we can remove them later
+        finished   = false,
+        response   = null,
+        onData     = null,
+        onEnd      = null,
+        onReqError = null,
+        onResError = null;
 
     options.method = "POST";
 
+    /**
+     * Cleanup all the event listeners registered on the request, and ensure that *callback* is only called one time
+     *
+     * @note passes all the arguments passed to this function to *callback*
+     */
+    var cleanupAndCallback = function(){
+      if(finished === true){return;}
+      finished = true;
+      req.removeListener('error', onReqError);
+      if(response !== null){
+        response.removeListener('data',  onData);
+        response.removeListener('end',   onEnd);
+        response.removeListener('error', onResError);
+      }
+      callback.apply(null, arguments);
+    };
+
     var req = (options.protocol=="https:"?https:http).request(options, function(res) {
+        response = res;
         var data = [];
 
-        res.on('data', function (chunk) {
+        res.on('data', onData = function (chunk) {
             data.push(chunk);
         });
 
-        res.on("end", function(){
-            if(finished){return;}
-            finished = true
-            return callback(null, res, Buffer.concat(data));
+        res.on("end", onEnd = function(){
+            return cleanupAndCallback(null, res, Buffer.concat(data));
         });
 
-        res.on("error", function(err) {
-            if(finished){return;}
-            finished = true
-            callback(err);
+        res.on("error", onResError = function(err) {
+            return cleanupAndCallback(err);
         });
     });
 
-    req.on("error", function(err) {
-        if(finished){return;}
-        finished = true
-        callback(err);
+    req.on("error", onReqError = function(err) {
+        return cleanupAndCallback(err);
     });
 
     if(payload){
@@ -179,7 +197,6 @@ function postRequest(url, payload, callback){
         req.setHeader("Content-Length", typeof payload == "string" ? Buffer.byteLength(payload) : payload.length);
     }
 
-    req.write(payload);
-    req.end();
+    req.end(payload);
 
 }
