@@ -143,14 +143,9 @@ XOAuth2Generator.prototype.buildXOAuth2Token = function(accessToken){
 
 
 function postRequest(url, payload, callback){
-    var options    = urllib.parse(url),
-        // Keep track of all of the various event listeners, so we can remove them later
-        finished   = false,
-        response   = null,
-        onData     = null,
-        onEnd      = null,
-        onReqError = null,
-        onResError = null;
+    var options  = urllib.parse(url),
+        finished = false,
+        response = null;
 
     options.method = "POST";
 
@@ -162,11 +157,9 @@ function postRequest(url, payload, callback){
     var cleanupAndCallback = function(){
       if(finished === true){return;}
       finished = true;
-      req.removeListener('error', onReqError);
+      req.removeAllListeners();
       if(response !== null){
-        response.removeListener('data',  onData);
-        response.removeListener('end',   onEnd);
-        response.removeListener('error', onResError);
+        response.removeAllListeners();
       }
       callback.apply(null, arguments);
     };
@@ -175,20 +168,20 @@ function postRequest(url, payload, callback){
         response = res;
         var data = [];
 
-        res.on('data', onData = function (chunk) {
+        res.on('data', function (chunk) {
             data.push(chunk);
         });
 
-        res.on("end", onEnd = function(){
+        res.on("end", function(){
             return cleanupAndCallback(null, res, Buffer.concat(data));
         });
 
-        res.on("error", onResError = function(err) {
+        res.on("error", function(err) {
             return cleanupAndCallback(err);
         });
     });
 
-    req.on("error", onReqError = function(err) {
+    req.on("error", function(err) {
         return cleanupAndCallback(err);
     });
 
