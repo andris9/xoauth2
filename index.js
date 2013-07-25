@@ -143,12 +143,29 @@ XOAuth2Generator.prototype.buildXOAuth2Token = function(accessToken){
 
 
 function postRequest(url, payload, callback){
-    var options = urllib.parse(url),
-        finished = false;
+    var options  = urllib.parse(url),
+        finished = false,
+        response = null;
 
     options.method = "POST";
 
+    /**
+     * Cleanup all the event listeners registered on the request, and ensure that *callback* is only called one time
+     *
+     * @note passes all the arguments passed to this function to *callback*
+     */
+    var cleanupAndCallback = function(){
+      if(finished === true){return;}
+      finished = true;
+      req.removeAllListeners();
+      if(response !== null){
+        response.removeAllListeners();
+      }
+      callback.apply(null, arguments);
+    };
+
     var req = (options.protocol=="https:"?https:http).request(options, function(res) {
+        response = res;
         var data = [];
 
         res.on('data', function (chunk) {
@@ -156,22 +173,16 @@ function postRequest(url, payload, callback){
         });
 
         res.on("end", function(){
-            if(finished){return;}
-            finished = true
-            return callback(null, res, Buffer.concat(data));
+            return cleanupAndCallback(null, res, Buffer.concat(data));
         });
 
         res.on("error", function(err) {
-            if(finished){return;}
-            finished = true
-            callback(err);
+            return cleanupAndCallback(err);
         });
     });
 
     req.on("error", function(err) {
-        if(finished){return;}
-        finished = true
-        callback(err);
+        return cleanupAndCallback(err);
     });
 
     if(payload){
@@ -179,7 +190,6 @@ function postRequest(url, payload, callback){
         req.setHeader("Content-Length", typeof payload == "string" ? Buffer.byteLength(payload) : payload.length);
     }
 
-    req.write(payload);
-    req.end();
+    req.end(payload);
 
 }
