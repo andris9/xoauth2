@@ -21,7 +21,7 @@ Possible options values:
   * **clientSecret** _(Required)_ Client secret value
   * **refreshToken** _(Required)_ Refresh token for an user
   * **accessToken** _(Optional)_ initial access token. If not set, a new one will be generated
-  * **timeout** _(Optional)_ timestamp for when the initial access token times out. In **milliseconds** after 1.1.1970.
+  * **timeout** _(Optional)_ TTL in **seconds**
 
 See [https://developers.google.com/accounts/docs/OAuth2WebServer#offline]() for generating the required credentials
 
@@ -46,7 +46,7 @@ If a new token value has been set, `'token'` event is emitted.
     xoauth2obj.on("token", function(token){
         console.log("User: ", token.user); // e-mail address
         console.log("New access token: ", token.accessToken);
-        console.log("New access token timeout: ", token.timeout); // timestamp after 1.1.1970 in seconds
+        console.log("New access token timeout: ", token.timeout); // TTL in seconds
     });
 
 ### Example

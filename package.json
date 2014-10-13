@@ -1,10 +1,10 @@
 {
   "name": "xoauth2",
-  "version": "0.1.8",
+  "version": "1.0.0",
   "description": "XOAuth2 token generation for accessing GMail SMTP and IMAP",
-  "main": "index.js",
+  "main": "src/xoauth2.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "grunt"
   },
   "repository": {
     "type": "git",
@@ -18,5 +18,12 @@
     "IMAP"
   ],
   "author": "Andris Reinman",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "*",
+    "grunt": "*",
+    "grunt-contrib-jshint": "*",
+    "grunt-mocha-test": "*",
+    "sinon": "*"
+  }
 }
