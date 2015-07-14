@@ -45,6 +45,8 @@ function XOAuth2Generator(options) {
     this.options = options || {};
 
     this.options.accessUrl = this.options.accessUrl || 'https://accounts.google.com/o/oauth2/token';
+    this.options.customHeaders = this.options.customHeaders || {};
+    this.options.customParams = this.options.customParams || {};
 
     this.token = this.options.accessToken && this.buildXOAuth2Token(this.options.accessToken) || false;
     this.accessToken = this.token && this.options.accessToken || false;
@@ -98,10 +100,15 @@ XOAuth2Generator.prototype.generateToken = function(callback) {
             client_secret: this.options.clientSecret || '',
             refresh_token: this.options.refreshToken,
             grant_type: 'refresh_token'
-        },
-        payload = querystring.stringify(urlOptions);
+        };
 
-    postRequest(this.options.accessUrl, payload, (function(error, response, body) {
+    for (var param in this.options.customParams) {
+        urlOptions[param] = this.options.customParams[param];
+    }
+
+    var payload = querystring.stringify(urlOptions);
+    var self = this;
+    postRequest(this.options.accessUrl, payload, this.options, function (error, response, body) {
         var data;
 
         if (error) {
@@ -123,12 +130,12 @@ XOAuth2Generator.prototype.generateToken = function(callback) {
         }
 
         if (data.access_token) {
-            this.updateToken(data.access_token, data.expires_in);
-            return callback(null, this.token, this.accessToken);
+            self.updateToken(data.access_token, data.expires_in);
+            return callback(null, self.token, self.accessToken);
         }
 
         return callback(new Error('No access token'));
-    }).bind(this));
+    });
 };
 
 /**
@@ -159,10 +166,11 @@ XOAuth2Generator.prototype.buildXOAuth2Token = function(accessToken) {
  * @param {String|Buffer} payload Payload to POST
  * @param {Function} callback Callback function with (err, buff)
  */
-function postRequest(url, payload, callback) {
+function postRequest(url, payload, params, callback) {
     var options = urllib.parse(url),
         finished = false,
-        response = null;
+        response = null,
+        req;
 
     options.method = 'POST';
 
@@ -183,7 +191,7 @@ function postRequest(url, payload, callback) {
         callback.apply(null, arguments);
     };
 
-    var req = (options.protocol === 'https:' ? https : http).request(options, function(res) {
+    req = (options.protocol === 'https:' ? https : http).request(options, function(res) {
         response = res;
         var data = [];
         var datalen = 0;
@@ -209,6 +217,10 @@ function postRequest(url, payload, callback) {
     if (payload) {
         req.setHeader('Content-Type', 'application/x-www-form-urlencoded');
         req.setHeader('Content-Length', typeof payload === 'string' ? Buffer.byteLength(payload) : payload.length);
+    }
+
+    for (var customHeaderName in params.customHeaders) {
+      req.setHeader(customHeaderName, params.customHeaders[customHeaderName]);
     }
 
     req.end(payload);

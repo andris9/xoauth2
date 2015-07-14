@@ -10,6 +10,7 @@
     "curly": true,
     "eqeqeq": true,
     "expr": true,
+    "node": true,
 
     "predef": [
         "describe",
