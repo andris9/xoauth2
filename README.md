@@ -22,6 +22,8 @@ Possible options values:
   * **refreshToken** _(Required)_ Refresh token for an user
   * **accessToken** _(Optional)_ initial access token. If not set, a new one will be generated
   * **timeout** _(Optional)_ TTL in **seconds**
+  * **customHeaders** _(Optional)_ custom headers to send during token generation request [yahoo requires `Authorization: Basic Base64(clientId:clientSecret)` ](https://developer.yahoo.com/oauth2/guide/flows_authcode/#step-5-exchange-refresh-token-for-new-access-token)
+  * **customParams** _(Optional)_ custom payload to send on getToken request [yahoo requires redirect_uri to be specified](https://developer.yahoo.com/oauth2/guide/flows_authcode/#step-5-exchange-refresh-token-for-new-access-token)
 
 See [https://developers.google.com/accounts/docs/OAuth2WebServer#offline]() for generating the required credentials
 
@@ -58,7 +60,13 @@ If a new token value has been set, `'token'` event is emitted.
         user: "user@gmail.com",
         clientId: "{Client ID}",
         clientSecret: "{Client Secret}",
-        refreshToken: "{User Refresh Token}"
+        refreshToken: "{User Refresh Token}",
+        customHeaders: {
+          "HeaderName": "HeaderValue"
+        },
+        customPayload: {
+          "payloadParamName": "payloadValue"
+        }
     });
 
     // SMTP/IMAP
