@@ -108,7 +108,7 @@ XOAuth2Generator.prototype.generateToken = function(callback) {
 
     var payload = querystring.stringify(urlOptions);
     var self = this;
-    postRequest.call(this, this.options.accessUrl, payload, function (error, response, body) {
+    postRequest(this.options.accessUrl, payload, this.options, function (error, response, body) {
         var data;
 
         if (error) {
@@ -166,7 +166,7 @@ XOAuth2Generator.prototype.buildXOAuth2Token = function(accessToken) {
  * @param {String|Buffer} payload Payload to POST
  * @param {Function} callback Callback function with (err, buff)
  */
-function postRequest(url, payload, callback) {
+function postRequest(url, payload, params, callback) {
     var options = urllib.parse(url),
         finished = false,
         response = null,
@@ -219,8 +219,8 @@ function postRequest(url, payload, callback) {
         req.setHeader('Content-Length', typeof payload === 'string' ? Buffer.byteLength(payload) : payload.length);
     }
 
-    for (var customHeaderName in this.options.customHeaders) {
-      req.setHeader(customHeaderName, this.options.customHeaders[customHeaderName]);
+    for (var customHeaderName in params.customHeaders) {
+      req.setHeader(customHeaderName, params.customHeaders[customHeaderName]);
     }
 
     req.end(payload);
