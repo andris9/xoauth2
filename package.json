@@ -1,6 +1,6 @@
 {
   "name": "xoauth2",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "XOAuth2 token generation for accessing GMail SMTP and IMAP",
   "main": "src/xoauth2.js",
   "scripts": {
