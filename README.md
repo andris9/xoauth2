@@ -25,7 +25,7 @@ Possible options values:
   * **customHeaders** _(Optional)_ custom headers to send during token generation request [yahoo requires `Authorization: Basic Base64(clientId:clientSecret)` ](https://developer.yahoo.com/oauth2/guide/flows_authcode/#step-5-exchange-refresh-token-for-new-access-token)
   * **customParams** _(Optional)_ custom payload to send on getToken request [yahoo requires redirect_uri to be specified](https://developer.yahoo.com/oauth2/guide/flows_authcode/#step-5-exchange-refresh-token-for-new-access-token)
 
-See [https://developers.google.com/accounts/docs/OAuth2WebServer#offline]() for generating the required credentials
+See [https://developers.google.com/identity/protocols/OAuth2WebServer#offline](https://developers.google.com/identity/protocols/OAuth2WebServer#offline) for generating the required credentials
 
 ### Methods
 
