@@ -6,6 +6,7 @@ var querystring = require('querystring');
 var http = require('http');
 var https = require('https');
 var urllib = require('url');
+var jwt = require('jsonwebtoken');
 
 /**
  * Wrapper for new XOAuth2Generator.
@@ -43,6 +44,15 @@ module.exports.createXOAuth2Generator = function(options) {
 function XOAuth2Generator(options) {
     Stream.call(this);
     this.options = options || {};
+
+    if (options && options.service) {
+        if (!options.scope || !options.privateKey || !options.user) {
+            throw new Error('Options "scope", "privateKey" and "user" are required for service account!');
+        }
+
+        var serviceRequestTimeout = Math.min(Math.max(Number(this.options.serviceRequestTimeout) || 0, 0), 3600);
+        this.options.serviceRequestTimeout = serviceRequestTimeout || 5 * 60;
+    }
 
     this.options.accessUrl = this.options.accessUrl || 'https://accounts.google.com/o/oauth2/token';
     this.options.customHeaders = this.options.customHeaders || {};
@@ -95,12 +105,33 @@ XOAuth2Generator.prototype.updateToken = function(accessToken, timeout) {
  * @param {Function} callback Callback function with error object and token string
  */
 XOAuth2Generator.prototype.generateToken = function(callback) {
-    var urlOptions = {
+    var urlOptions;
+    if (this.options.service) {
+        // service account - https://developers.google.com/identity/protocols/OAuth2ServiceAccount
+        var iat = Math.floor(Date.now() / 1000); // unix time
+        var token = jwt.sign({
+            iss: this.options.service,
+            scope: this.options.scope,
+            sub: this.options.user,
+            aud: this.options.accessUrl,
+            iat: iat,
+            exp: iat + this.options.serviceRequestTimeout,
+        }, this.options.privateKey, { algorithm: 'RS256' });
+
+        urlOptions = {
+            grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+            assertion: token
+        };
+    }
+    else {
+        // web app - https://developers.google.com/identity/protocols/OAuth2WebServer
+        urlOptions = {
             client_id: this.options.clientId || '',
             client_secret: this.options.clientSecret || '',
             refresh_token: this.options.refreshToken,
             grant_type: 'refresh_token'
         };
+    }
 
     for (var param in this.options.customParams) {
         urlOptions[param] = this.options.customParams[param];

@@ -27,6 +27,19 @@ Possible options values:
 
 See [https://developers.google.com/identity/protocols/OAuth2WebServer#offline](https://developers.google.com/identity/protocols/OAuth2WebServer#offline) for generating the required credentials
 
+For Google service account the option values are:
+
+  * **service** _(Required)_ Service account email.
+  * **user** _(Required)_ User e-mail address
+  * **scope** _(Required)_ OAuth2 scope.
+  * **privateKey** _(Required)_ Private key issued for the service account in PEM format, as a string.
+  * **serviceRequestTimeout** _(Optional)_ Expiration value to use in the token request in **seconds**. Maximum is 3600.
+  * **accessUrl** _(Optional)_ Endpoint for token generation (defaults to *https://accounts.google.com/o/oauth2/token*)
+  * **accessToken** _(Optional)_ initial access token. If not set, a new one will be generated
+  * **timeout** _(Optional)_ TTL in **seconds**
+  * **customHeaders** _(Optional)_ custom headers to send during token generation request
+  * **customParams** _(Optional)_ custom payload to send on getToken request
+
 ### Methods
 
 #### Request an access token
@@ -67,6 +80,14 @@ If a new token value has been set, `'token'` event is emitted.
         customPayload: {
           "payloadParamName": "payloadValue"
         }
+    });
+
+    // ... or for a Google service account
+    xoauth2gen = xoauth2.createXOAuth2Generator({
+        user: "user@gmail.com",
+        service: '{Service Email Address}',
+        scope: 'https://mail.google.com/',
+        privateKey: '{Private Key in PEM format}'
     });
 
     // SMTP/IMAP
