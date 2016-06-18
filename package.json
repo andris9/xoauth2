@@ -6,9 +6,6 @@
   "scripts": {
     "test": "grunt"
   },
-  "dependencies": {
-    "jsonwebtoken": "^7.0.1"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/andris9/xoauth2.git"

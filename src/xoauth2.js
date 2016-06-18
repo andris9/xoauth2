@@ -6,7 +6,7 @@ var querystring = require('querystring');
 var http = require('http');
 var https = require('https');
 var urllib = require('url');
-var jwt = require('jsonwebtoken');
+var crypto = require('crypto');
 
 /**
  * Wrapper for new XOAuth2Generator.
@@ -109,14 +109,14 @@ XOAuth2Generator.prototype.generateToken = function(callback) {
     if (this.options.service) {
         // service account - https://developers.google.com/identity/protocols/OAuth2ServiceAccount
         var iat = Math.floor(Date.now() / 1000); // unix time
-        var token = jwt.sign({
+        var token = jwtSignRS256({
             iss: this.options.service,
             scope: this.options.scope,
             sub: this.options.user,
             aud: this.options.accessUrl,
             iat: iat,
             exp: iat + this.options.serviceRequestTimeout,
-        }, this.options.privateKey, { algorithm: 'RS256' });
+        }, this.options.privateKey);
 
         urlOptions = {
             grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
@@ -255,4 +255,45 @@ function postRequest(url, payload, params, callback) {
     }
 
     req.end(payload);
+}
+
+/**
+ * Encodes a buffer or a string into Base64url format
+ *
+ * @param {Buffer|String} data The data to convert
+ * @return {String} The encoded string
+ */
+function toBase64URL(data) {
+    if (typeof data === 'string') {
+        data = new Buffer(data);
+    }
+
+    return data.toString('base64')
+        .replace(/=+/g, '')     // remove '='s
+        .replace(/\+/g, '-')    // '+' → '-'
+        .replace(/\//g, '_');   // '/' → '_'
+}
+
+/**
+ * Header used for RS256 JSON Web Tokens, encoded as Base64URL.
+ */
+var JWT_RS256_HEADER = toBase64URL('{"alg":"RS256","typ":"JWT"}');
+
+/**
+ * Creates a JSON Web Token signed with RS256 (SHA256 + RSA)
+ * Only this specific operation is needed so it's implemented here
+ * instead of depending on jsonwebtoken.
+ *
+ * @param {Object} payload The payload to include in the generated token
+ * @param {String} privateKey Private key in PEM format for signing the token
+ * @return {String} The generated and signed token
+ */
+function jwtSignRS256(payload, privateKey) {
+    var signaturePayload = JWT_RS256_HEADER + '.' + toBase64URL(JSON.stringify(payload));
+
+    var rs256Signer = crypto.createSign('RSA-SHA256');
+    rs256Signer.update(signaturePayload);
+    var signature = toBase64URL(rs256Signer.sign(privateKey));
+
+    return signaturePayload + '.' + signature;
 }
