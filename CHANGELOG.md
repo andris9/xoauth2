@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.2.0 2016-07-29
+
+  * Added support for webtokens
+
 ## v1.1.0 2015-07-14
 
   * Added support for Yahoo specific headers (AVVS)
