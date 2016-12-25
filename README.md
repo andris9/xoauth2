@@ -5,7 +5,7 @@ XOAuth2 token generation with node.js
 
 ## Installation
 
-    npm install xoauth2
+    npm install xoauth2 --save
 
 ## Usage
 
